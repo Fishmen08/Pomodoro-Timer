@@ -10,6 +10,7 @@ function App() {
   const [isPaused, setIsPaused] = useState(true);
   const [onBreak, setOnBreak] = useState(false);
 
+// This section is to manage the buttons
   const breakDecrement = () => {
     if (breaks === 1 || !isPaused) return
     setBreaks(breaks - 1);
@@ -39,71 +40,66 @@ function App() {
     setIsPaused(true);
   }
 
-  // function tick() {
-  //   setTimer(timer - 1);
-  //   console.log('tick');
-  // }
-
+  // To allow the time in the session box to display in minute and second format
   const displayTime = (a) => {
     const min = Math.floor(a / 60);
     const sec = Math.floor(a % 60);
     return (min<10 ? '0'+min : min) + ':' +(sec<10 ? '0'+sec : sec);  
   }
 
-  let intervalId;
-
+  // Controling the pause and continue function
   const paused = () => {
     setIsPaused(!isPaused)
   }
 
-  let breakInterval;
-
-  const updateBreaks = () => {
-    if (breakTimer < 0) {
-      clearInterval(breakInterval);
-      setOnBreak(false);
-      setTimer(session * 60);
-    };
-    breakInterval = setInterval(() => {
-      setBreakTimer(prev => prev - 1)
-    }, 1000)
-
-    
-  }
-
-  const updateTimer = () => {
-    if (timer < 0) {
-      clearInterval(intervalId)
-      setOnBreak(true)
-      setBreakTimer(breaks * 60)
-      return;
-    }
-    intervalId = setInterval(() => {
-      setTimer(prev => prev - 1)
-    }, 1000)
-
-    
-  }
-
+  // This controls the countdown timer for the session block.
+  // We have an interval that runs every second to countdown the clock on the session timer
+  // upon hitting zero we clear the clock and change from session to break
   useEffect(() => {
+    let intervalId;
     if (isPaused === false && onBreak === false){
-    updateTimer()
-
+      const updateTimer = () => {
+        if (timer < 0) {
+          clearInterval(intervalId)
+          setOnBreak(true)
+          setBreakTimer(breaks * 60)
+          return;
+        }
+        intervalId = setInterval(() => {
+          setTimer(prev => prev - 1)
+        }, 1000)
+      }
+      updateTimer();
     return () => clearInterval(intervalId)}
-  }, [timer, isPaused, onBreak])
+  }, [timer, isPaused, onBreak, breaks])
 
+
+  // This controls the break interval timer very similar to the above timer
   useEffect(() => {
+    let breakInterval;
     if (onBreak === true && isPaused === false) {
+      
+      const updateBreaks = () => {
+        if (breakTimer < 0) {
+          clearInterval(breakInterval);
+          setOnBreak(false);
+          setTimer(session * 60);
+        };
+        breakInterval = setInterval(() => {
+          setBreakTimer(prev => prev - 1)
+        }, 1000)
+      }
       updateBreaks()
     }
     return () => clearInterval(breakInterval)
-  }, [isPaused, breakTimer, onBreak])
+  }, [isPaused, breakTimer, onBreak, session])
 
+  // This controls setting the timers to the respective times when we are adjusting them prior to the clock starting
   useEffect(() => {
     if (onBreak === false){
     setTimer(session * 60)}
     setBreakTimer(breaks * 60);
-  }, [session, breaks])
+  }, [session, breaks, onBreak])
   
 
 
